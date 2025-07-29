@@ -1,7 +1,7 @@
-import { PutItemCommand, DeleteItemCommand, ReturnValue, ScanCommand, ListTablesCommand } from "@aws-sdk/client-dynamodb";
+import { ReturnValue, ListTablesCommand } from "@aws-sdk/client-dynamodb";
 import { getDynamoDBClient } from "./dynamoDBConfig";
 import { handlePutItemError } from "./errorHandlers";
-
+import { ScanCommand, PutCommand, DeleteCommand  } from "@aws-sdk/lib-dynamodb";
 const dynamoDbClient = getDynamoDBClient();
 
 export const executeHealthCheck = async () => {
@@ -26,11 +26,11 @@ export const executeGetTasks = async () => {
   }
 }
 
-export const executeCreateTask = async (createTaskInput) => {
+export const executeCreateTask = async (newTask) => {
   try {
-    const command = new PutItemCommand({
+    const command = new PutCommand({
       TableName: "TaskifyTask",
-      Item: createTaskInput,
+      Item: newTask,
       ReturnValues: ReturnValue.ALL_OLD,
     });
     const putItemOutput = await dynamoDbClient.send(command);
@@ -44,7 +44,7 @@ export const executeCreateTask = async (createTaskInput) => {
 export const executeUpdateTask = async (updateTaskInput) => {
   // Call DynamoDB's updateItem API
   try {
-    const command = new PutItemCommand({
+    const command = new PutCommand({
       TableName: "TaskifyTask",
       ...updateTaskInput,
       ReturnValues: "ALL_NEW",
@@ -59,7 +59,7 @@ export const executeUpdateTask = async (updateTaskInput) => {
 
 export const executeDeleteItem = async (deleteItemInput) => {
   try {
-    const command = new DeleteItemCommand(deleteItemInput);
+    const command = new DeleteCommand(deleteItemInput);
     const deleteItemOutput = await dynamoDbClient.send(command);
     console.info("Successfully deleted item.")
   } catch (err) {

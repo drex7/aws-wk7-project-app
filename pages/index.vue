@@ -23,8 +23,10 @@
             @keyup.enter="saveEdit(task)"
             @blur="cancelEdit(task)"
           />
-          <span v-if="task.dueDate" class="task-due-date">Due: {{ formatDate(task.dueDate) }}</span>
-          <span class="task-created-at">Created: {{ formatDate(task.createdAt) }}</span>
+          <div class="date">
+            <span v-if="task.dueDate" class="task-due-date">Due: {{ formatDate(task.dueDate) }}</span>
+            <span class="task-created-at">Created: {{ formatDate(task.createdAt) }}</span>
+          </div>
         </div>
         <button @click="deleteTask(task.id)" class="delete-button">Delete</button>
       </li>
@@ -61,7 +63,7 @@ const addTask = async () => {
       },
       body: JSON.stringify({
         title: newtaskTitle.value,
-        dueDate: newtaskDueDate.value || null,
+        dueDate: new Date(newtaskDueDate.value).getTime() || null,
       }),
     });
     if (!response.ok) {
@@ -129,6 +131,7 @@ const saveEdit = async (task) => {
       },
       body: JSON.stringify({
         title: task.editedTitle,
+        createdAt: task.createdAt,
       }),
     });
     if (!response.ok) {
@@ -148,7 +151,7 @@ const cancelEdit = (task) => {
 
 const formatDate = (dateString) => {
   if (!dateString) return '';
-  const date = new Date(dateString);
+  const date = new Date(parseInt(dateString));
   return date.toLocaleDateString();
 };
 
@@ -235,6 +238,11 @@ h1 {
 .task-title {
   font-weight: bold;
   flex-grow: 1;
+}
+
+.date {
+  display: grid;
+  margin-right: 1rem;
 }
 
 .task-due-date,
