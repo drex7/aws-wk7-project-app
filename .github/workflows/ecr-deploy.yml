@@ -7,7 +7,12 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
+  
   build-and-push:
     runs-on: ubuntu-latest 
 
@@ -20,6 +25,7 @@ jobs:
         with:
           aws-region: ${{ secrets.AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_ROLE_ARN }}
+          role-session-name: GitHubActionsSession
 
       - name: Login to Amazon ECR Private Registry
         uses: aws-actions/amazon-ecr-login@v2
