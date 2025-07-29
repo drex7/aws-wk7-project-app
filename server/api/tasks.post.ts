@@ -1,10 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuidv4 } from "uuid";
 import { executeCreateTask } from "~/lib/clientQueries";
 
-const client = new DynamoDBClient({});
-const dynamoDbClient = DynamoDBDocumentClient.from(client);
 
 export default defineEventHandler(async (event) => {
   try {
