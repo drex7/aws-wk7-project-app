@@ -3,13 +3,13 @@ import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 
 function getDynamoDBClient() {
 
-  // if (!config) {
-  //   throw new Error("Configuration is required to create DynamoDB client");
-  // }
-  // if (process.env.NODE_ENV != "production") {
-  //   console.log("Creating DynamoDB client in non-production environment");
+  let client;
 
-    const client = new DynamoDBClient({
+
+  if (process.env.NODE_ENV != "production") {
+    console.log("Creating DynamoDB client in non-production environment");
+
+    client = new DynamoDBClient({
       region: process.env.AWS_REGION,
       ...(process.env.NODE_ENV !== "production" && {
         endpoint: process.env.AWS_DYNAMODB_ENDPOINT,
@@ -20,19 +20,14 @@ function getDynamoDBClient() {
       },
     });
     
-  // } else {
-  //   console.log("Creating DynamoDB client in production environment");
+  } else {
+    console.log("Creating DynamoDB client in production environment");
 
-  //   dynamoDBClient = new DynamoDBClient({
-  //     region: process.env.AWS_REGION,
-  //     endpoint: process.env.AWS_DYNAMODB_ENDPOINT,
-  //     credentials: {
-  //       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  //       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  //     },
-  //   });
-  // }
-	
+    client = new DynamoDBClient({
+      region: process.env.AWS_REGION,
+    });
+  }
+
   return DynamoDBDocumentClient.from(client);
 }
 
