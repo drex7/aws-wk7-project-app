@@ -2,11 +2,15 @@ import { executeHealthCheck } from "~/lib/clientQueries";
 
 export default defineEventHandler(async (event) => {
   const result = await executeHealthCheck();
-
+  if (result === false) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Health check failed",
+    });
+  }
   return {
     status: "ok",
-    message: result,
+    statusMessage: "Health check passed",
     timestamp: new Date().toISOString(),
-    result: result,
   };
 });

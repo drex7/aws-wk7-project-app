@@ -1,23 +1,38 @@
-import { ReturnValue, ListTablesCommand } from "@aws-sdk/client-dynamodb";
+import { ReturnValue, DescribeTableCommand } from "@aws-sdk/client-dynamodb";
 import { getDynamoDBClient } from "./dynamoDBConfig";
 import { handlePutItemError } from "./errorHandlers";
 import { ScanCommand, PutCommand, DeleteCommand  } from "@aws-sdk/lib-dynamodb";
+
 const dynamoDbClient = getDynamoDBClient();
+const tableName = "TaskifyTask";
 
 export const executeHealthCheck = async () => {
   try {
-    const command = new ListTablesCommand()
+    const command = new DescribeTableCommand({
+      TableName: tableName,
+    });
     const response = await dynamoDbClient.send(command);
-    return response.TableNames.length > 0 ? "DynamoDB is healthy" : "DynamoDB is not healthy";
+    console.log(
+      `Table '${tableName}' exists. Status: ${response.Table.TableStatus}`
+    );
+    // return `Table '${tableName}' exists. Status: ${response.Table.TableStatus}`;
+    return true;
   } catch (error) {
-    console.log(error);
+    if (error.name === "ResourceNotFoundException") {
+      console.log(`Table '${tableName}' does not exist.`);
+      return false;
+    } else {
+      // Re-throw other unexpected errors
+      console.error(`An unexpected error occurred: ${error.message}`);
+      throw error;
+    }
   }
 }
 
 export const executeGetTasks = async () => {
   try {
     const command = new ScanCommand({
-      TableName: "TaskifyTask",
+      TableName: tableName,
     });
     const response = await dynamoDbClient.send(command);
     return response.Items;
@@ -29,7 +44,7 @@ export const executeGetTasks = async () => {
 export const executeCreateTask = async (newTask) => {
   try {
     const command = new PutCommand({
-      TableName: "TaskifyTask",
+      TableName: tableName,
       Item: newTask,
       ReturnValues: ReturnValue.ALL_OLD,
     });
@@ -45,7 +60,7 @@ export const executeUpdateTask = async (updateTaskInput) => {
   // Call DynamoDB's updateItem API
   try {
     const command = new PutCommand({
-      TableName: "TaskifyTask",
+      TableName: tableName,
       ...updateTaskInput,
       ReturnValues: "ALL_NEW",
     });
