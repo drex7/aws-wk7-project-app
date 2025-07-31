@@ -4,7 +4,16 @@ export default defineEventHandler(async (event) => {
   try {
     const id = getRouterParam(event, "id");
     const body = await readBody(event);
-    
+    console.log("index.put.ts: body", body);
+    if (!id) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "ID parameter is required",
+      });
+    }
+    body.id = id;
+    body.status = body.status.toString()
+    /*
     const updateExpressions: string[] = [];
     const expressionAttributeValues: Record<string, any> = {};
     const expressionAttributeNames: Record<string, string> = {};
@@ -20,10 +29,15 @@ export default defineEventHandler(async (event) => {
       expressionAttributeValues[":dueDate"] = body.dueDate;
       expressionAttributeNames["#dd"] = "dueDate";
     }
-    if (body.isCompleted !== undefined) {
-      updateExpressions.push("#ic = :isCompleted");
-      expressionAttributeValues[":isCompleted"] = body.isCompleted;
-      expressionAttributeNames["#ic"] = "isCompleted";
+    if (body.status !== undefined) {
+      updateExpressions.push("#ic = :status");
+      expressionAttributeValues[":status"] = body.status;
+      expressionAttributeNames["#ic"] = "status";
+    }
+    if (body.createdAt !== undefined) {
+      updateExpressions.push("#ic = :createdAt");
+      expressionAttributeValues[":createdAt"] = body.createdAt;
+      expressionAttributeNames["#ic"] = "createdAt";
     }
 
     if (updateExpressions.length === 0) {
@@ -32,15 +46,10 @@ export default defineEventHandler(async (event) => {
         statusMessage: "No fields to update",
       });
     }
-
     updateExpressionString += updateExpressions.join(", ");
+    */
 
-    const response = await executeUpdateTask({
-      Key: { id },
-      UpdateExpression: updateExpressionString,
-      ExpressionAttributeValues: expressionAttributeValues,
-      ExpressionAttributeNames: expressionAttributeNames,
-    });
+    const response = await executeUpdateTask(body);
     return response?.Attributes;
   } catch (error) {
     console.error(

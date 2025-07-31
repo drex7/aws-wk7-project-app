@@ -1,10 +1,9 @@
 networks:
-  demo:
+  app-network:
 
 services:
-  task-app:
-    profiles:
-      - prod
+  task-app-prod:
+    profiles: [ prod ]
     build:
       context: .
       dockerfile: Dockerfile
@@ -22,15 +21,14 @@ services:
       - AWS_REGION=${AWS_REGION}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
-      - AWS_DYNAMODB_ENDPOINT=http://localhost:8000
 
-  dev:
+  task-app:
+    container_name: task-app
     profiles: [ dev ]
-    # depends_on: 
-    #   postgres-service:
-    #     condition: service_healthy
-    networks: [ demo ]
+    depends_on: 
+      dynamodb-local:
+        condition: service_healthy
+    networks: [ app-network ]
     build:
       context: .
       dockerfile: Dockerfile
@@ -40,60 +38,41 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3000
-      - AWS_DYNAMODB_ENDPOINT=http://localhost:8000
-      # - DATABASE_URL=postgresql://$(cat /run/secrets/postgres_user):$(cat /run/secrets/postgres_password)@postgres-service:5432/$(cat /run/secrets/postgres_db)?schema=public
-      # - DB_USER_FILE=/run/secrets/postgres_user
-      # - DB_PASSWORD_FILE=/run/secrets/postgres_password
-      # - DB_NAME_FILE=/run/secrets/postgres_db
-    #   - AWS_REGION=/run/secrets/aws_region
-    #   - AWS_ACCESS_KEY_ID=/run/secrets/aws_access_key_id
-    #   - AWS_SECRET_ACCESS_KEY=/run/secrets/aws_secret_access_key
-    #   - AWS_S3_BUCKET=/run/secrets/aws_s3_bucket
-    # secrets:
-    #   - postgres_user
-    #   - postgres_password
-    #   - postgres_db
+      - AWS_DYNAMODB_ENDPOINT=http://dynamodb-local:8000
     ports:
-      - "3000:3000"
-    # develop:
-    #   watch: 
-    #     - path: .
-    #       action: rebuild
+      - "3003:3000"
     restart: unless-stopped
     volumes:
       - .:/app
       - /app/node_modules
     command: yarn dev
     healthcheck:
-      test: ['CMD-SHELL', 'curl -f http://localhost:3000/api/health || exit 1']
+      test: ['CMD-SHELL', 'curl -f http://localhost:3003/api/health || exit 1']
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    # develop:
+    #   watch: 
+    #     - path: .
+    #       action: rebuild
+
+  dynamodb-local:
+    profiles: ["dev"]
+    networks: [ app-network ]
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    image: "amazon/dynamodb-local:latest"
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./docker/dynamodb:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal
+    healthcheck:
+      test: ["CMD-SHELL", 'curl -s http://localhost:8000 > /dev/null || exit 1']
       interval: 5s
       timeout: 5s
       retries: 10
 
-  postgres-service:
-    image: postgres:16-alpine
-    hostname: postgres
-    container_name: postgres
-    profiles: [ dev ]
-    networks: ['demo']
-    restart: unless-stopped
-    ports:
-      - "5433:5432"
-    environment:
-      - POSTGRES_USER_FILE=/run/secrets/postgres_user
-      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
-      - POSTGRES_DB_FILE=/run/secrets/postgres_db
-    secrets:
-      - postgres_user
-      - postgres_password
-      - postgres_db
-    volumes:
-      - postgres_storage:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -h localhost -U $$(cat /run/secrets/postgres_user) -d $$(cat /run/secrets/postgres_db)']
-      interval: 5s
-      timeout: 5s
-      retries: 10
 
 secrets:
   aws_region:
