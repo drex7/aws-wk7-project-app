@@ -12,10 +12,9 @@ export const executeHealthCheck = async () => {
       TableName: tableName,
     });
     const response = await dynamoDbClient.send(command);
-    console.log(
-      `Table '${tableName}' exists. Status: ${response.Table.TableStatus}`
-    );
-    // return `Table '${tableName}' exists. Status: ${response.Table.TableStatus}`;
+    // console.log(
+    //   `Table '${tableName}' exists. Status: ${response.Table.TableStatus}`
+    // );
     return true;
   } catch (error) {
     if (error.name === "ResourceNotFoundException") {
