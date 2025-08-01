@@ -10,6 +10,7 @@ export default defineEventHandler(async (event) => {
   }
   return {
     status: "ok",
+    statusCode: 200,
     statusMessage: "Health check passed",
     timestamp: new Date().toISOString(),
   };
