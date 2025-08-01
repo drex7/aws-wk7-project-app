@@ -6,7 +6,7 @@ import { handlePutItemError } from "./errorHandlers";
 const dynamoDbClient = getDynamoDBClient();
 const tableName = "TaskifyTask";
 
-export const executeHealthCheck = async () => {
+export const executeDBHealthCheck = async () => {
   try {
     const command = new DescribeTableCommand({
       TableName: tableName,
