@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h1>Taskify App</h1>
+    <h1>Taskify App: Derrick</h1>
 
     <!-- Alert message -->
     <div v-if="alert.message" :class="['alert', alert.type]">
